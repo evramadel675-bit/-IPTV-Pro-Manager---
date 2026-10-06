@@ -1,0 +1,8 @@
+{
+  "name": "IPTV Pro Manager - إدارة اشتراكات IPTV",
+  "description": "تطبيق إدارة عملاء واشتراكات الـ IPTV، متابعة تواريخ التجديد والانتهاء، حساب الأرباح، والربط التلقائي مع Google Sheets وواتساب.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
