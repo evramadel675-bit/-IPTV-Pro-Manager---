@@ -202,19 +202,55 @@ export const SingleFileExportModal: React.FC<SingleFileExportModalProps> = ({
   </div>
 
   <div id="toolModal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-3">
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-5 text-xs">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-5 text-xs max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-3">
-        <h2 id="toolModalTitle" class="font-bold text-white text-base">إضافة أداة / كود Downloader</h2>
+        <h2 id="toolModalTitle" class="font-bold text-white text-base">إضافة أداة أو كود</h2>
         <button onclick="closeModal('toolModal')" class="text-slate-400 text-lg">✕</button>
       </div>
       <form onsubmit="saveTool(event)" class="space-y-3">
         <input type="hidden" id="tId" />
-        <div><label class="block mb-1 text-slate-300 font-bold">اسم التطبيق *</label><input required id="tTitle" placeholder="مثال: تطبيق IBO Player Pro" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2 text-white outline-none" /></div>
-        <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700">
-          <label class="block mb-1 text-emerald-400 font-bold">كود تطبيق Downloader:</label>
-          <input id="tCode" placeholder="مثال: 841203" dir="ltr" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 font-mono text-emerald-300 outline-none" />
+        <div>
+          <label class="block mb-1 text-slate-300 font-bold">التصنيف:</label>
+          <div class="grid grid-cols-4 gap-1 text-[11px] font-bold mb-1">
+            <button type="button" onclick="setToolCat('downloader')" id="tCatDownloader" class="p-1.5 rounded-lg bg-emerald-500 text-slate-950">Downloader</button>
+            <button type="button" onclick="setToolCat('app_link')" id="tCatLink" class="p-1.5 rounded-lg bg-slate-800 text-slate-300">رابط APK</button>
+            <button type="button" onclick="setToolCat('server_info')" id="tCatDns" class="p-1.5 rounded-lg bg-slate-800 text-slate-300">سيرفر و DNS</button>
+            <button type="button" onclick="setToolCat('note')" id="tCatNote" class="p-1.5 rounded-lg bg-slate-800 text-slate-300">شاملة</button>
+          </div>
         </div>
-        <div><label class="block mb-1 text-slate-300">ملاحظات وشرح:</label><textarea id="tContent" rows="3" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2 text-white outline-none"></textarea></div>
+        <div>
+          <label class="block mb-1 text-slate-300 font-bold">اسم الأداة / العنوان *</label>
+          <input required id="tTitle" placeholder="مثال: تطبيق IBO Player Pro" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2 text-white outline-none" />
+        </div>
+        
+        <!-- Box Downloader -->
+        <div id="tBoxCode" class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700">
+          <label class="block mb-1 text-emerald-400 font-bold">كود تطبيق Downloader الرقمي:</label>
+          <input id="tCode" placeholder="مثال: 841203" dir="ltr" inputmode="numeric" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 font-mono text-emerald-300 outline-none" />
+        </div>
+
+        <!-- Box Link -->
+        <div id="tBoxLink" class="hidden bg-slate-800/60 p-2.5 rounded-xl border border-slate-700">
+          <label class="block mb-1 text-cyan-400 font-bold">رابط التحميل المباشر (Direct URL / APK):</label>
+          <input id="tUrl" placeholder="https://example.com/app.apk" dir="ltr" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 font-mono text-cyan-300 outline-none" />
+        </div>
+
+        <!-- Box DNS -->
+        <div id="tBoxDns" class="hidden space-y-2 bg-slate-800/60 p-2.5 rounded-xl border border-slate-700">
+          <div>
+            <label class="block mb-1 text-purple-400 font-bold">الـ DNS الرئيسي (Primary DNS):</label>
+            <input id="tDns1" placeholder="http://line.iptv-server.com:8080" dir="ltr" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 font-mono text-purple-300 outline-none" />
+          </div>
+          <div>
+            <label class="block mb-1 text-slate-400 font-medium">الـ DNS الثانوي / البديل (Secondary DNS):</label>
+            <input id="tDns2" placeholder="http://backup.iptv-server.com:8080" dir="ltr" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 font-mono text-slate-300 outline-none" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block mb-1 text-slate-300">ملاحظات وشرح:</label>
+          <textarea id="tContent" rows="3" placeholder="ملاحظات أو طريقة التثبيت..." class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2 text-white outline-none"></textarea>
+        </div>
         <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
           <button type="button" onclick="closeModal('toolModal')" class="px-4 py-2 text-slate-400">إلغاء</button>
           <button type="submit" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-5 py-2 rounded-xl font-bold">حفظ الأداة</button>
@@ -371,17 +407,32 @@ export const SingleFileExportModal: React.FC<SingleFileExportModalProps> = ({
         \`;
       }).join('');
     }
+    let curToolCat = 'downloader';
+    function setToolCat(cat) {
+      curToolCat = cat;
+      const cats = ['downloader', 'app_link', 'server_info', 'note'];
+      cats.forEach(c => {
+        const btn = document.getElementById(c === 'downloader' ? 'tCatDownloader' : c === 'app_link' ? 'tCatLink' : c === 'server_info' ? 'tCatDns' : 'tCatNote');
+        if(btn) btn.className = c === cat ? 'p-1.5 rounded-lg bg-emerald-500 text-slate-950 font-bold' : 'p-1.5 rounded-lg bg-slate-800 text-slate-300';
+      });
+      document.getElementById('tBoxCode').classList.toggle('hidden', cat === 'app_link' || cat === 'server_info');
+      document.getElementById('tBoxLink').classList.toggle('hidden', cat === 'downloader' || cat === 'server_info');
+      document.getElementById('tBoxDns').classList.toggle('hidden', cat === 'downloader' || cat === 'app_link');
+    }
+
     function renderTools() {
       const q = document.getElementById('toolSearch').value.toLowerCase();
-      const filtered = tools.filter(t => !q || t.title.toLowerCase().includes(q) || (t.downloaderCode && t.downloaderCode.includes(q)));
+      const filtered = tools.filter(t => !q || t.title.toLowerCase().includes(q) || (t.downloaderCode && t.downloaderCode.includes(q)) || (t.url && t.url.toLowerCase().includes(q)));
       document.getElementById('toolsList').innerHTML = filtered.map(t => {
-        let waMsg = encodeURIComponent('*' + t.title + '*\\n' + (t.downloaderCode ? '📲 كود Downloader: *' + t.downloaderCode + '*\\n' : '') + (t.content ? t.content : ''));
+        let waMsg = encodeURIComponent('*' + t.title + '*\\n' + (t.downloaderCode ? '📲 كود Downloader: *' + t.downloaderCode + '*\\n' : '') + (t.url ? (t.category === 'server_info' ? '🌐 الـ DNS الرئيسي: ' : '🔗 الرابط: ') + t.url + '\\n' : '') + (t.secondaryUrl ? '🌐 الـ DNS البديل: ' + t.secondaryUrl + '\\n' : '') + (t.content ? t.content : ''));
         return \`
           <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
             <div>
               <div class="flex justify-between items-start mb-2"><h3 class="font-bold text-white text-sm sm:text-base">\${t.title}</h3><div class="flex gap-1"><button onclick="openToolModal('\${t.id}')" class="p-1 text-slate-400">✏️</button><button onclick="deleteTool('\${t.id}')" class="p-1 text-rose-400">🗑️</button></div></div>
               \${t.downloaderCode ? \`<div class="bg-slate-950 border border-emerald-500/30 rounded-xl p-2.5 mb-2 flex justify-between items-center"><div><span class="text-[10px] text-slate-400 block">كود Downloader:</span><span class="font-mono text-base font-black text-emerald-300">\${t.downloaderCode}</span></div><button onclick="navigator.clipboard.writeText('\${t.downloaderCode}')" class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-lg text-xs font-bold">نسخ الكود</button></div>\` : ''}
-              \${t.content ? \`<div class="text-xs text-slate-300 bg-slate-950/60 p-2 rounded-xl mb-2">\${t.content}</div>\` : ''}
+              \${t.url ? \`<div class="bg-slate-950/80 border border-slate-800 rounded-xl p-2 mb-2 flex justify-between items-center text-xs"><div class="truncate"><span class="text-[10px] text-slate-400 block">\${t.category === 'server_info' ? 'الـ DNS الرئيسي:' : 'رابط التحميل:'}</span><span class="font-mono \${t.category === 'server_info' ? 'text-purple-300' : 'text-cyan-300'}">\${t.url}</span></div><button onclick="navigator.clipboard.writeText('\${t.url}')" class="p-1 text-slate-400 hover:text-white">نسخ</button></div>\` : ''}
+              \${t.secondaryUrl ? \`<div class="bg-slate-950/80 border border-slate-800 rounded-xl p-2 mb-2 flex justify-between items-center text-xs"><div class="truncate"><span class="text-[10px] text-slate-400 block">الـ DNS البديل:</span><span class="font-mono text-purple-200">\${t.secondaryUrl}</span></div><button onclick="navigator.clipboard.writeText('\${t.secondaryUrl}')" class="p-1 text-slate-400 hover:text-white">نسخ</button></div>\` : ''}
+              \${t.content ? \`<div class="text-xs text-slate-300 bg-slate-950/60 p-2 rounded-xl mb-2 whitespace-pre-wrap">\${t.content}</div>\` : ''}
             </div>
             <div class="pt-2 border-t border-slate-800 flex justify-end"><a href="https://wa.me/?text=\${waMsg}" target="_blank" class="text-xs text-emerald-400 font-bold">💬 إرسال للعميل عبر واتساب</a></div>
           </div>
@@ -391,10 +442,35 @@ export const SingleFileExportModal: React.FC<SingleFileExportModalProps> = ({
     function setFilter(f) { curFilter = f; document.querySelectorAll('.f-btn').forEach(b => b.className = b.dataset.f === f ? 'f-btn px-3 py-1.5 rounded-lg bg-emerald-500 text-slate-950 font-bold' : 'f-btn px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300'); renderClients(); }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
     function openClientModal(id) { document.getElementById('clientModal').classList.remove('hidden'); }
-    function openToolModal(id) { document.getElementById('toolModal').classList.remove('hidden'); }
+    function openToolModal(id) {
+      const tool = id ? tools.find(x => x.id === id) : null;
+      document.getElementById('tId').value = tool ? tool.id : '';
+      document.getElementById('tTitle').value = tool ? tool.title : '';
+      document.getElementById('tCode').value = tool ? (tool.downloaderCode || '') : '';
+      document.getElementById('tUrl').value = tool ? (tool.url || '') : '';
+      document.getElementById('tDns1').value = tool && tool.category === 'server_info' ? (tool.url || '') : '';
+      document.getElementById('tDns2').value = tool ? (tool.secondaryUrl || '') : '';
+      document.getElementById('tContent').value = tool ? (tool.content || '') : '';
+      setToolCat(tool ? (tool.category || 'downloader') : 'downloader');
+      document.getElementById('toolModal').classList.remove('hidden');
+    }
     function saveClient(e) { e.preventDefault(); const id = document.getElementById('cId').value || 'c_' + Date.now(); const cost = Number(document.getElementById('cCost').value)||0; const sell = Number(document.getElementById('cSell').value)||0; const data = { id, name: document.getElementById('cName').value, phone: document.getElementById('cPhone').value, subscriptionType: document.getElementById('cServer').value, accountType: curType, code: document.getElementById('cCode').value, username: document.getElementById('cUser').value, password: document.getElementById('cPass').value, serverUrl: document.getElementById('cUrl').value, costPrice: cost, sellingPrice: sell, profit: sell - cost, expiryDate: document.getElementById('cExpiry').value }; const idx = clients.findIndex(x => x.id === id); if(idx >= 0) clients[idx] = data; else clients.unshift(data); saveClients(); renderStats(); renderClients(); closeModal('clientModal'); }
     function deleteClient(id) { if(confirm('حذف العميل؟')) { clients = clients.filter(x => x.id !== id); saveClients(); renderStats(); renderClients(); } }
-    function saveTool(e) { e.preventDefault(); const id = document.getElementById('tId').value || 't_' + Date.now(); const data = { id, title: document.getElementById('tTitle').value, downloaderCode: document.getElementById('tCode').value, content: document.getElementById('tContent').value }; const idx = tools.findIndex(x => x.id === id); if(idx >= 0) tools[idx] = data; else tools.unshift(data); saveTools(); renderTools(); closeModal('toolModal'); }
+    function saveTool(e) {
+      e.preventDefault();
+      const id = document.getElementById('tId').value || 't_' + Date.now();
+      const title = document.getElementById('tTitle').value.trim();
+      const code = document.getElementById('tCode').value.trim();
+      const url = curToolCat === 'server_info' ? document.getElementById('tDns1').value.trim() : document.getElementById('tUrl').value.trim();
+      const secondaryUrl = document.getElementById('tDns2').value.trim();
+      const content = document.getElementById('tContent').value.trim();
+      const data = { id, title, category: curToolCat, downloaderCode: code, url, secondaryUrl, content, createdAt: new Date().toISOString() };
+      const idx = tools.findIndex(x => x.id === id);
+      if(idx >= 0) tools[idx] = data; else tools.unshift(data);
+      saveTools();
+      renderTools();
+      closeModal('toolModal');
+    }
     function deleteTool(id) { if(confirm('حذف الأداة؟')) { tools = tools.filter(x => x.id !== id); saveTools(); renderTools(); } }
     function openSheetsPrompt() { const u = prompt('أدخل رابط Google Apps Script Web App الخاص بك:', sheetsUrl); if(u !== null) { sheetsUrl = u.trim(); localStorage.setItem('iptv_single_sheets_url', sheetsUrl); if(sheetsUrl) saveClients(); } }
     function openBackupModal() { document.getElementById('backupModal').classList.remove('hidden'); }

@@ -28,7 +28,8 @@ export interface ToolNote {
   title: string;
   category: NoteCategory;
   downloaderCode?: string; // Downloader shortcode (e.g. 841203)
-  url?: string; // Direct APK or web link
+  url?: string; // Direct APK or web link / Primary DNS
+  secondaryUrl?: string; // Secondary DNS or backup portal
   content: string; // Description, activation steps, or notes
   createdAt: string;
   updatedAt: string;

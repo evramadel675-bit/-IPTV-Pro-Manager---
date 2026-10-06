@@ -9,6 +9,7 @@ import {
   FileText,
   Link as LinkIcon,
   Server,
+  Globe,
   MessageCircle
 } from 'lucide-react';
 import { ToolNote } from '../types/client';
@@ -57,8 +58,8 @@ export const ToolNoteCard: React.FC<ToolNoteCardProps> = ({
         };
       default:
         return {
-          label: 'ملاحظة',
-          color: 'bg-slate-700/40 text-slate-300 border-slate-700',
+          label: 'ملاحظة شاملة',
+          color: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
           icon: FileText,
         };
     }
@@ -73,7 +74,11 @@ export const ToolNoteCard: React.FC<ToolNoteCardProps> = ({
       msg += `📲 كود تحميل Downloader: *${note.downloaderCode}*\n`;
     }
     if (note.url) {
-      msg += `🔗 الرابط المباشر: ${note.url}\n`;
+      const urlLabel = note.category === 'server_info' ? '🌐 الـ DNS الرئيسي' : '🔗 الرابط المباشر';
+      msg += `${urlLabel}: ${note.url}\n`;
+    }
+    if (note.secondaryUrl) {
+      msg += `🌐 الـ DNS الثانوي / البديل: ${note.secondaryUrl}\n`;
     }
     if (note.content) {
       msg += `📝 ملاحظات: ${note.content}\n`;
@@ -96,14 +101,14 @@ export const ToolNoteCard: React.FC<ToolNoteCardProps> = ({
           <div className="flex items-center gap-1">
             <button
               onClick={() => onEdit(note)}
-              className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition"
+              className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition cursor-pointer"
               title="تعديل الملاحظة"
             >
               <Edit2 className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => onDelete(note.id)}
-              className="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition"
+              className="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition cursor-pointer"
               title="حذف"
             >
               <Trash2 className="w-3.5 h-3.5" />
@@ -118,7 +123,7 @@ export const ToolNoteCard: React.FC<ToolNoteCardProps> = ({
 
         {/* Downloader Code Box (Prominent & 1-click copy) */}
         {note.downloaderCode && (
-          <div className="bg-slate-900/90 border border-emerald-500/40 rounded-xl p-3 mb-3 flex items-center justify-between gap-2 shadow-sm">
+          <div className="bg-slate-900/90 border border-emerald-500/40 rounded-xl p-3 mb-2.5 flex items-center justify-between gap-2 shadow-sm">
             <div className="flex items-center gap-2 overflow-hidden">
               <div className="p-1.5 bg-emerald-500/20 text-emerald-400 rounded-lg shrink-0">
                 <DownloadCloud className="w-4 h-4" />
@@ -133,7 +138,7 @@ export const ToolNoteCard: React.FC<ToolNoteCardProps> = ({
 
             <button
               onClick={() => copyText(note.downloaderCode!, 'code', 'كود Downloader')}
-              className="flex items-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 active:scale-95 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded-xl text-xs font-bold transition shrink-0"
+              className="flex items-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 active:scale-95 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded-xl text-xs font-bold transition shrink-0 cursor-pointer"
               title="نسخ كود التحميل بنقرة واحدة"
             >
               {copiedKey === 'code' ? (
@@ -151,33 +156,90 @@ export const ToolNoteCard: React.FC<ToolNoteCardProps> = ({
           </div>
         )}
 
-        {/* URL Box (if provided) */}
+        {/* Primary URL / Primary DNS Box */}
         {note.url && (
-          <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-2.5 mb-3 flex items-center justify-between gap-2 text-xs">
+          <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-2.5 mb-2 flex items-center justify-between gap-2 text-xs">
             <div className="flex items-center gap-2 overflow-hidden">
-              <LinkIcon className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-              <span className="font-mono text-cyan-300 text-xs truncate select-all" dir="ltr">
-                {note.url}
-              </span>
+              {note.category === 'server_info' ? (
+                <Server className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+              ) : (
+                <LinkIcon className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+              )}
+              <div className="overflow-hidden">
+                <span className="text-[10px] text-slate-400 block font-medium">
+                  {note.category === 'server_info' ? 'الـ DNS الرئيسي:' : 'رابط التحميل / الموقع:'}
+                </span>
+                <span
+                  className={`font-mono text-xs truncate block select-all ${
+                    note.category === 'server_info' ? 'text-purple-300' : 'text-cyan-300'
+                  }`}
+                  dir="ltr"
+                >
+                  {note.url}
+                </span>
+              </div>
             </div>
             <div className="flex items-center gap-1 shrink-0">
               <button
-                onClick={() => copyText(note.url!, 'url', 'رابط التطبيق')}
-                className="p-1 text-slate-400 hover:text-cyan-400"
+                onClick={() =>
+                  copyText(
+                    note.url!,
+                    'url',
+                    note.category === 'server_info' ? 'الـ DNS الرئيسي' : 'رابط التطبيق'
+                  )
+                }
+                className="p-1 text-slate-400 hover:text-white cursor-pointer"
                 title="نسخ الرابط"
               >
                 {copiedKey === 'url' ? (
-                  <Check className="w-3.5 h-3.5 text-cyan-400" />
+                  <Check className="w-3.5 h-3.5 text-emerald-400" />
                 ) : (
                   <Copy className="w-3.5 h-3.5" />
                 )}
               </button>
               <a
-                href={note.url}
+                href={note.url.startsWith('http') ? note.url : `http://${note.url}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-1 text-slate-400 hover:text-white"
-                title="فتح الرابط في متصفح خارجي"
+                title="فتح الرابط"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            </div>
+          </div>
+        )}
+
+        {/* Secondary URL / Secondary DNS Box (if provided) */}
+        {note.secondaryUrl && (
+          <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-2.5 mb-2.5 flex items-center justify-between gap-2 text-xs">
+            <div className="flex items-center gap-2 overflow-hidden">
+              <Globe className="w-3.5 h-3.5 text-purple-300 shrink-0" />
+              <div className="overflow-hidden">
+                <span className="text-[10px] text-slate-400 block font-medium">الـ DNS الثانوي / البديل:</span>
+                <span className="font-mono text-xs text-purple-200 truncate block select-all" dir="ltr">
+                  {note.secondaryUrl}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                onClick={() => copyText(note.secondaryUrl!, 'secondaryUrl', 'الـ DNS البديل')}
+                className="p-1 text-slate-400 hover:text-white cursor-pointer"
+                title="نسخ الـ DNS البديل"
+              >
+                {copiedKey === 'secondaryUrl' ? (
+                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5" />
+                )}
+              </button>
+              <a
+                href={note.secondaryUrl.startsWith('http') ? note.secondaryUrl : `http://${note.secondaryUrl}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-1 text-slate-400 hover:text-white"
+                title="فتح الرابط"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
@@ -198,7 +260,7 @@ export const ToolNoteCard: React.FC<ToolNoteCardProps> = ({
         <span>{new Date(note.createdAt).toLocaleDateString('ar-EG')}</span>
         <button
           onClick={shareToWhatsApp}
-          className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300 font-semibold"
+          className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300 font-semibold cursor-pointer"
           title="مشاركة الكود والبيانات عبر الواتساب"
         >
           <MessageCircle className="w-3.5 h-3.5" />
@@ -208,3 +270,4 @@ export const ToolNoteCard: React.FC<ToolNoteCardProps> = ({
     </div>
   );
 };
+
